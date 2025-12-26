@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>الدفع | ZED</title>
+  <link rel="icon" type="image/png" href="img/ZED-05.jpg">
+  <style>
+    body {
+      font-family: "Cairo", sans-serif;
+      background: #f8f8f8;
+      margin: 0;
+      direction: rtl;
+      text-align: center;
+    }
+    .container {
+      width: 90%;
+      max-width: 700px;
+      margin: 100px auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 { margin-bottom: 20px; color: #222; }
+    form { display: flex; flex-direction: column; gap: 15px; text-align: right; }
+    label { display: block; font-weight: 600; margin-bottom: 6px; }
+    input, textarea, select {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    button {
+      background: #222;
+      color: #fff;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    button:hover { background: #ff9900; }
+    .summary { margin-top: 30px; background: #f0f0f0; padding: 15px; border-radius: 8px; text-align: right; }
+    ul { padding-inline-end: 18px; margin: 8px 0; text-align: right; }
+    li { margin-bottom: 6px; }
+    .empty { color: #666; }
+
+    
+header {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background-color: #222;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  z-index: 1000;
+  
+}
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  color: #fff;
+justify-self: end;
+
+}
+.navbar .logo a {
+  color: #fff;
+  text-decoration: none;
+  font-size: 24px;
+  font-weight: bold;
+
+}
+  </style>
+</head>
+<body>
+  
+<header>
+  <nav class="navbar">
+    <div class="logo"><a href="index.html">ZED</a></div>
+  </nav>
+</header>
+
+  <div class="container">
+    <h1>إتمام عملية الدفع</h1>
+
+    <form id="checkout-form">
+      <label for="name">الاسم الكامل</label>
+      <input type="text" id="name" required>
+
+      <label for="phone">رقم الهاتف</label>
+      <input type="tel" id="phone" required>
+
+      <label for="address">العنوان</label>
+      <textarea id="address" rows="3" required></textarea>
+
+      <label for="payment-method">طريقة الدفع</label>
+      <select id="payment-method" required>
+        <option value="كاش عند الاستلام">كاش عند الاستلام</option>
+        <option value="فودافون كاش - 01023456789">فودافون كاش - 01023456789</option>
+        <option value="إنستاباي - 01012345678">إنستاباي - 01012345678</option>
+      </select>
+      <label for="payment-method">مصاريف الشحن <b>65</b> </label>
+
+
+      <button type="submit">تأكيد الطلب ✅</button>
+    </form>
+
+    <div class="summary" id="order-summary"></div>
+  </div>
+
+  <!-- EmailJS -->
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+  <script>
+    // تهيئة EmailJS مع Public Key
+    emailjs.init("3vD9YZI7HjdTW1Mnm");
+
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const summaryDiv = document.getElementById('order-summary');
+
+    function toNumber(v) {
+      const n = Number(v);
+      return isNaN(n) ? 0 : n;
+    }
+
+    // عرض ملخص الطلب
+    if (cart.length > 0) {
+      let total = 0;
+      let html = `<h3>ملخص الطلب:</h3><ul>`;
+      cart.forEach(item => {
+        const name = item.name || "منتج غير معروف";
+        const color = item.color || "-";
+        const size = item.size || "-";
+        const qty = toNumber(item.quantity) || 1;
+        const price = toNumber(item.price);
+        const itemTotal = price * qty;
+        total += itemTotal;
+        html += `<li>${name} (${color}, ${size}) × ${qty} = ${itemTotal.toFixed(2)} ج.م</li>`;
+      });
+      html += `</ul><p><strong>الإجمالي الكلي: ${total.toFixed(2)} ج.م</strong></p>`;
+      summaryDiv.innerHTML = html;
+    } else {
+      summaryDiv.innerHTML = `<p class="empty">السلة فارغة.</p>`;
+    }
+
+    // إرسال الطلب
+    document.getElementById('checkout-form').addEventListener('submit', function(e){
+      e.preventDefault();
+
+      const name = document.getElementById('name').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const address = document.getElementById('address').value.trim();
+      const payment = document.getElementById('payment-method').value;
+
+      if (cart.length === 0) {
+        alert("السلة فارغة!");
+        return;
+      }
+
+      const total = cart.reduce((sum, i) => sum + (toNumber(i.price) * (toNumber(i.quantity) || 1)), 0);
+
+      const cartLines = cart.map(i => {
+        const name = i.name || "منتج غير معروف";
+        const color = i.color || "-";
+        const size = i.size || "-";
+        const qty = toNumber(i.quantity) || 1;
+        const price = toNumber(i.price);
+        const itemTotal = (price * qty).toFixed(2);
+        return `${name} (${color}, ${size}) × ${qty} = ${itemTotal} ج.م`;
+      }).join("\n");
+
+      const templateParams = {
+        user_name: name,
+        user_phone: phone,
+        user_address: address,
+        user_payment: payment,
+        user_cart: cartLines,
+        total_amount: total.toFixed(2)
+      };
+
+      emailjs.send('service_f7zgtd8', 'template_pet5fw5', templateParams)
+        .then(() => {
+          alert(`❤️ تم تأكيد طلبك بنجاح، ${name}! شكراً لاختيارك ZED. فريقنا سيبدأ تجهيز طلبك.`);
+          localStorage.removeItem('cart');
+          document.getElementById('checkout-form').reset();
+          summaryDiv.innerHTML = `<p class="empty">السلة فارغة.</p>`;
+        })
+        .catch((error) => {
+          console.error("EmailJS Error:", error);
+          alert("حدث خطأ أثناء إرسال الرسالة. تفقد الكونسول لمعرفة التفاصيل.");
+        });
+    });
+  </script>
+</body>
+</html>

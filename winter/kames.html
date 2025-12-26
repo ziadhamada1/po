@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>  قميص  </title>
+  <style>
+      * {
+      font-family: "Cairo", sans-serif;
+    
+    }
+    body {
+      background-color: #111;
+      color: white;
+      font-family: "Cairo", sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #9F2828;
+      margin-top: 80px;
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      justify-content: center;
+    }
+
+    .gallery img {
+      width: 100%;
+      height: auto;
+      border-radius: 15px;
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .gallery img:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 25px #9F2828;
+    }
+
+    /* زر الرجوع */
+    /* زر الرجوع */
+.back-btn {
+  display: block;
+  text-align: center;
+  margin-top: 40px;
+  background: #9F2828;
+  color: white;
+  padding: 12px 25px;
+  border-radius: 25px;
+  font-weight: bold;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+  border: none;        /* مهم للزرار */
+  cursor: pointer;     /* شكل اليد عند المرور */
+  transition: background 0.3s ease;
+}
+
+.back-btn:hover {
+  background: #9c1313;
+}
+    /* ✅ نافذة عرض الصورة */
+    .lightbox {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .lightbox img {
+      max-width: 90%;
+      max-height: 85%;
+      border-radius: 15px;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    .lightbox.show {
+      display: flex;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .lightbox img.visible {
+      opacity: 1;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* زر الإغلاق */
+    .close-btn {
+      position: absolute;
+      top: 30px;
+      right: 40px;
+      font-size: 40px;
+      color: #9F2828;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .close-btn:hover {
+      color: white;
+      transform: scale(1.1);
+    }
+
+    /* الأسهم */
+    .arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 50px;
+      color: #9F2828;
+      cursor: pointer;
+      /* user-select: none; */
+      transition: 0.3s;
+    }
+
+    .arrow:hover {
+      color: white;
+      transform: translateY(-50%) scale(1.2);
+    }
+
+    .arrow.left {
+      left: 40px;
+    }
+
+    .arrow.right {
+      right: 40px;
+    }
+
+
+        
+header {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background-color: #222;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  z-index: 1000;
+  
+}
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  color: #fff;
+justify-self: end;
+
+}
+.navbar .logo a {
+  color: #fff;
+  text-decoration: none;
+  font-size: 24px;
+  font-weight: bold;
+
+}
+  </style>
+</head>
+<body>
+    
+<header>
+  <nav class="navbar">
+        <div class="logo"><a href="../index.html">ZED</a></div>
+
+  </nav>
+</header>
+
+
+  <h1>   قميص</h1>
+
+  <div class="gallery">
+<img src="../img/kames/1 (2).jpg" alt="">
+<img src="../img/kames/1 (1).jpg" alt="">
+<img src="../img/kames/1 (4).jpg" alt="">
+<img src="../img/kames/1 (3).jpg" alt="">
+
+
+
+
+  </div>
+
+  <button class="back-btn" onclick="history.back()">رجوع للقسم</button>
+
+  <!-- ✅ نافذة العرض -->
+  <div class="lightbox" id="lightbox">
+    <span class="close-btn" id="closeBtn">&times;</span>
+    <span class="arrow left" id="prev">&#10094;</span>
+    <img id="lightboxImg" src="" alt="">
+    <span class="arrow right" id="next">&#10095;</span>
+  </div>
+
+  <script>
+    const images = document.querySelectorAll('.gallery img');
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightboxImg');
+    const closeBtn = document.getElementById('closeBtn');
+    const nextBtn = document.getElementById('next');
+    const prevBtn = document.getElementById('prev');
+
+    let currentIndex = 0;
+
+    images.forEach((img, index) => {
+      img.addEventListener('click', () => {
+        currentIndex = index;
+        showImage();
+      });
+    });
+
+    function showImage() {
+      lightboxImg.classList.remove('visible'); // اخفاء تدريجي
+      setTimeout(() => {
+        lightboxImg.src = images[currentIndex].src;
+        lightbox.classList.add('show');
+        setTimeout(() => lightboxImg.classList.add('visible'), 100);
+      }, 200);
+    }
+
+    closeBtn.addEventListener('click', () => {
+      lightbox.classList.remove('show');
+      lightboxImg.classList.remove('visible');
+    });
+
+    nextBtn.addEventListener('click', () => {
+      lightboxImg.classList.remove('visible');
+      setTimeout(() => {
+        currentIndex = (currentIndex + 1) % images.length;
+        lightboxImg.src = images[currentIndex].src;
+        setTimeout(() => lightboxImg.classList.add('visible'), 100);
+      }, 200);
+    });
+
+    prevBtn.addEventListener('click', () => {
+      lightboxImg.classList.remove('visible');
+      setTimeout(() => {
+        currentIndex = (currentIndex - 1 + images.length) % images.length;
+        lightboxImg.src = images[currentIndex].src;
+        setTimeout(() => lightboxImg.classList.add('visible'), 100);
+      }, 200);
+    });
+
+    lightbox.addEventListener('click', (e) => {
+      if (e.target === lightbox) {
+        lightbox.classList.remove('show');
+        lightboxImg.classList.remove('visible');
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (!lightbox.classList.contains('show')) return;
+      if (e.key === 'ArrowRight') nextBtn.click();
+      if (e.key === 'ArrowLeft') prevBtn.click();
+      if (e.key === 'Escape') closeBtn.click();
+    });
+  </script>
+
+</body>
+</html>

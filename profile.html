@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>الملف الشخصي | ZED</title>
+  <link rel="icon" type="image/png" href="img/ZED-05.jpg">
+
+  <style>
+    body {
+      background: #000;
+      color: #fff;
+      font-family: "Cairo", sans-serif;
+      direction: rtl;
+      margin: 0;
+      padding: 0;
+    }
+
+    .profile-container {
+      max-width: 450px;
+      margin: 50px auto;
+      background: #1a1a1a;
+      padding: 25px;
+      border-radius: 14px;
+      box-shadow: 0 5px 20px rgba(159,40,40,0.4);
+      text-align: center;
+    }
+
+    .avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #9F2828;
+      margin-bottom: 15px;
+      cursor: pointer;
+    }
+
+    .username {
+      font-size: 24px;
+      margin: 10px 0;
+      color: #9F2828;
+    }
+
+    .email {
+      color: #ccc;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
+    .stats-box {
+      background: #000;
+      padding: 15px;
+      border-radius: 10px;
+      margin: 15px 0;
+    }
+
+    .stats-title {
+      color: #9F2828;
+      font-size: 18px;
+      margin-bottom: 5px;
+    }
+
+    .logout-btn {
+      background: #9F2828;
+      color: #fff;
+      padding: 12px;
+      width: 100%;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+      margin-top: 10px;
+    }
+
+    .logout-btn:hover { background: #ff4d4d; }
+
+    #avatar-input { display: none; }
+  </style>
+</head>
+<body>
+
+  <div class="profile-container">
+    <img id="avatar" class="avatar" src="" alt="avatar" title="اضغط لتغيير الصورة">
+
+    <input type="file" id="avatar-input" accept="image/*">
+
+    <h2 id="username" class="username">...</h2>
+    <p id="email" class="email">...</p>
+
+    <div class="stats-box">
+      <p class="stats-title">عدد الطلبات التي قمت بها:</p>
+      <h2 id="orders-count">0</h2>
+    </div>
+
+    <p id="created_at" style="color:#777; margin-top:10px; font-size:13px;"></p>
+
+    <button class="logout-btn" id="logout-btn">تسجيل خروج</button>
+  </div>
+
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+const supabaseUrl = "https://ywbjijfivsihjulypbft.supabase.co";
+const supabaseKey = "YOUR_SUPABASE_KEY";
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// =================== تحميل البروفايل ===================
+async function loadProfile() {
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  document.getElementById("email").textContent = user.email;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  if (profile) {
+    document.getElementById("username").textContent = profile.username;
+    document.getElementById("avatar").src = profile.avatar_url || 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
+    document.getElementById("created_at").textContent =
+      "عضو منذ: " + new Date(profile.created_at).toLocaleDateString("ar-EG");
+  }
+
+  const { count } = await supabase
+    .from("orders")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", user.id);
+
+  document.getElementById("orders-count").textContent = count || 0;
+}
+
+loadProfile();
+
+// =================== تسجيل خروج ===================
+document.getElementById("logout-btn").addEventListener("click", async () => {
+  await supabase.auth.signOut();
+  window.location.href = "login.html";
+});
+
+// =================== تعديل الصورة ===================
+const avatarImg = document.getElementById("avatar");
+const avatarInput = document.getElementById("avatar-input");
+
+avatarImg.addEventListener("click", () => avatarInput.click());
+
+avatarInput.addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  // رفع الصورة لـ Supabase Storage
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${user.id}.${fileExt}`;
+  const filePath = `avatars/${fileName}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from('avatars')
+    .upload(filePath, file, { upsert: true });
+
+  if (uploadError) {
+    alert('حدث خطأ أثناء رفع الصورة: ' + uploadError.message);
+    return;
+  }
+
+  const { data: urlData } = supabase.storage
+    .from('avatars')
+    .getPublicUrl(filePath);
+
+  // تحديث جدول profiles
+  await supabase.from('profiles').update({ avatar_url: urlData.publicUrl }).eq('id', user.id);
+
+  // تحديث الصورة مباشرة
+  avatarImg.src = urlData.publicUrl;
+});
+
+</script>
+</body>
+</html>

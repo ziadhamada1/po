@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>سلة التسوق | ZED</title>
+<link rel="icon" type="image/png" href="img/ZED-05.jpg">
+
+  <style>
+
+header {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background-color: #222;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  z-index: 1000;
+}
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  color: #fff;
+  display: flex;
+justify-self: end;
+}
+.navbar .logo a {
+  color: #fff;
+  text-decoration: none;
+  font-size: 24px;
+  font-weight: bold;
+}
+body {
+  font-family: "Cairo", sans-serif;
+  margin: 0;
+  background: #f5f5f5;
+  direction: rtl;
+}
+main {
+  padding: 120px 20px 50px;
+  text-align: center;
+}
+h1 { color: #222; margin-bottom: 30px; }
+table {
+  width: 90%;
+  max-width: 900px;
+  margin: auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  border-collapse: collapse;
+}
+th, td {
+  padding: 15px;
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+}
+th { background: #222; color: #fff; }
+select, input[type="number"] {
+  padding: 5px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+.remove-btn {
+  background: #f33;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+.remove-btn:hover { background: #c00; }
+.checkout {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background: #222;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.checkout:hover { background: #ff9900; }
+.empty { margin-top: 40px; font-size: 20px; color: #666; }
+
+
+
+  /* CSS موجود مسبقاً هنا ... */
+
+  /* RESPONSIVE */
+  @media screen and (max-width: 768px) {
+    table {
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+    }
+  }
+
+  @media screen and (max-width: 480px) {
+    main {
+      padding: 120px 10px 50px;
+    }
+    th, td {
+      padding: 8px;
+      font-size: 0.9rem;
+    }
+    .checkout {
+      width: 100%;
+      padding: 10px;
+    }
+  }
+  </style>
+</head>
+<body>
+
+<header>
+  <nav class="navbar">
+    <div class="logo"><a href="index.html">ZED</a></div>
+  </nav>
+</header>
+
+<main>
+  <h1>سلة التسوق</h1>
+  <div id="cart-container"></div>
+</main>
+
+<script>
+function renderCart() {
+  let cart = JSON.parse(localStorage.getItem('cart')) || [];
+  const container = document.getElementById('cart-container');
+  if (cart.length === 0) {
+    container.innerHTML = '<p class="empty">سلة التسوق فارغة.</p>';
+    return;
+  }
+
+  let totalAll = 0;
+  let html = `<table>
+  <tr><th>المنتج</th><th>اللون</th><th>المقاس</th><th>السعر</th><th>الكمية</th><th>الإجمالي</th><th>حذف</th></tr>`;
+
+  cart.forEach((item, index) => {
+    const price = parseFloat(item.price) || 0;
+    const qty = parseInt(item.quantity) || 1;
+    const total = price * qty;
+    totalAll += total;
+
+    html += `<tr>
+      <td>${item.name}</td>
+      <td>
+        <select data-index="${index}" class="color-select">
+          <option value="أسود" ${item.color==="أسود"?"selected":""}>أسود</option>
+          <option value="أبيض" ${item.color==="أبيض"?"selected":""}>أبيض</option>
+          <option value="أزرق" ${item.color==="أزرق"?"selected":""}>أزرق</option>
+          <option value="رمادي" ${item.color==="رمادي"?"selected":""}>رمادي</option>
+        </select>
+      </td>
+      <td>
+        <select data-index="${index}" class="size-select">
+          <option value="S" ${item.size==="S"?"selected":""}>S</option>
+          <option value="M" ${item.size==="M"?"selected":""}>M</option>
+          <option value="L" ${item.size==="L"?"selected":""}>L</option>
+          <option value="XL" ${item.size==="XL"?"selected":""}>XL</option>
+        </select>
+      </td>
+      <td>${price.toFixed(2)} ج.م</td>
+      <td><input type="number" min="1" value="${qty}" data-index="${index}" class="qty-input"></td>
+      <td>${total.toFixed(2)} ج.م</td>
+      <td><button class="remove-btn" data-index="${index}">حذف</button></td>
+    </tr>`;
+  });
+
+  html += `</table>
+  <h3 style="margin-top:20px;">الإجمالي الكلي: ${totalAll.toFixed(2)} ج.م</h3>
+  <button class="checkout" id="checkout-btn">إتمام الشراء</button>`;
+  container.innerHTML = html;
+
+  // تعديل الكمية
+  document.querySelectorAll('.qty-input').forEach(input => {
+    input.addEventListener('change', e => {
+      const idx = e.target.getAttribute('data-index');
+      const val = Math.max(1, parseInt(e.target.value));
+      cart[idx].quantity = val;
+      localStorage.setItem('cart', JSON.stringify(cart));
+      renderCart();
+    });
+  });
+
+  // تعديل اللون
+  document.querySelectorAll('.color-select').forEach(sel => {
+    sel.addEventListener('change', e => {
+      const idx = e.target.getAttribute('data-index');
+      cart[idx].color = e.target.value;
+      localStorage.setItem('cart', JSON.stringify(cart));
+    });
+  });
+
+  // تعديل المقاس
+  document.querySelectorAll('.size-select').forEach(sel => {
+    sel.addEventListener('change', e => {
+      const idx = e.target.getAttribute('data-index');
+      cart[idx].size = e.target.value;
+      localStorage.setItem('cart', JSON.stringify(cart));
+    });
+  });
+
+  // حذف منتج
+  document.querySelectorAll('.remove-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const idx = e.target.getAttribute('data-index');
+      cart.splice(idx, 1);
+      localStorage.setItem('cart', JSON.stringify(cart));
+      renderCart();
+    });
+  });
+
+document.getElementById('checkout-btn').addEventListener('click', () => {
+  window.location.href = 'checkout.html';
+});
+
+}
+renderCart();
+</script>
+</body>
+</html>

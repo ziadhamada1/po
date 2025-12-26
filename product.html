@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>تفاصيل المنتج</title>
+  <style>
+    body {
+      font-family: "Cairo", sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+      padding: 0;
+    }
+
+    .product-container {
+      max-width: 1000px;
+      margin: 50px auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      padding: 30px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+    }
+
+    .product-image {
+      flex: 1 1 400px;
+      text-align: center;
+    }
+
+    .product-image img {
+      width: 100%;
+      max-width: 400px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+
+    .product-image img:hover {
+      transform: scale(1.03);
+    }
+
+    .product-info {
+      flex: 1 1 400px;
+    }
+
+    .product-info h2 {
+      margin: 0;
+      font-size: 26px;
+      color: #333;
+    }
+
+    .price {
+      color: #9f2828;
+      font-size: 22px;
+      margin: 15px 0;
+    }
+
+    .colors {
+      margin: 20px 0;
+    }
+
+    .color-option {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: inline-block;
+      margin: 0 8px;
+      cursor: pointer;
+      border: 2px solid #ccc;
+      transition: border 0.3s;
+    }
+
+    .color-option.active {
+      border: 3px solid #9f2828;
+    }
+
+    .add-to-cart {
+      background: #9f2828;
+      color: #fff;
+      border: none;
+      padding: 12px 25px;
+      font-size: 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .add-to-cart:hover {
+      background: #b33434;
+    }
+
+    /* ====== نافذة الصورة الكاملة ====== */
+    .fullscreen {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.9);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .fullscreen img {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: 12px;
+    }
+
+    .close-fullscreen {
+      position: absolute;
+      top: 30px;
+      right: 40px;
+      font-size: 40px;
+      color: #fff;
+      cursor: pointer;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="product-container">
+    <div class="product-image">
+      <img id="mainImage" src="img/ZED-02.jpg" alt="صورة المنتج">
+    </div>
+    <div class="product-info">
+      <h2 id="productName">تيشيرت رجالي صيفي</h2>
+      <p class="price" id="productPrice">250</p>
+
+      <div class="colors">
+        <h4>اختر اللون:</h4>
+        <div class="color-option" data-image="img/ZED-02.jpg" style="background-color: #000;"></div>
+        <div class="color-option" data-image="img/ZED-04.jpg" style="background-color: #1e90ff;"></div>
+        <div class="color-option" data-image="img/ZED-05.jpg" style="background-color: #c0392b;"></div>
+      </div>
+
+      <button class="add-to-cart" id="addToCartBtn">أضف إلى السلة 🛒</button>
+    </div>
+  </div>
+
+  <!-- نافذة الصورة الكاملة -->
+  <div class="fullscreen" id="fullscreenView">
+    <span class="close-fullscreen" id="closeFullscreen">&times;</span>
+    <img src="" alt="صورة مكبرة" id="fullscreenImg">
+  </div>
+
+  <script>
+    // ====== تغيير الصورة عند اختيار اللون ======
+    const mainImage = document.getElementById("mainImage");
+    const colorOptions = document.querySelectorAll(".color-option");
+
+    colorOptions.forEach(option => {
+      option.addEventListener("click", () => {
+        const newImage = option.dataset.image;
+        mainImage.src = newImage;
+        colorOptions.forEach(o => o.classList.remove("active"));
+        option.classList.add("active");
+      });
+    });
+
+    // ====== عرض الصورة بالحجم الكامل ======
+    const fullscreenView = document.getElementById("fullscreenView");
+    const fullscreenImg = document.getElementById("fullscreenImg");
+    const closeFullscreen = document.getElementById("closeFullscreen");
+
+    mainImage.addEventListener("click", () => {
+      fullscreenImg.src = mainImage.src;
+      fullscreenView.style.display = "flex";
+    });
+
+    closeFullscreen.addEventListener("click", () => {
+      fullscreenView.style.display = "none";
+    });
+
+    fullscreenView.addEventListener("click", (e) => {
+      if (e.target === fullscreenView) fullscreenView.style.display = "none";
+    });
+
+    // ====== إضافة المنتج إلى السلة ======
+    document.getElementById("addToCartBtn").addEventListener("click", () => {
+      const name = document.getElementById("productName").textContent;
+      const price = document.getElementById("productPrice").textContent;
+      const img = document.getElementById("mainImage").src;
+
+      let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+      const existing = cart.find(item => item.name === name && item.img === img);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        cart.push({ name, price, img, quantity: 1 });
+      }
+
+      localStorage.setItem("cart", JSON.stringify(cart));
+      alert("✅ تم إضافة المنتج إلى السلة!");
+    });
+  </script>
+
+</body>
+</html>

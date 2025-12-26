@@ -1,0 +1,53 @@
+/* =================== الأساسيات العامة =================== */
+* {
+  box-sizing: border-box;
+  scroll-behavior: smooth  ;
+
+}
+
+body {
+  font-family: 'Cairo', sans-serif;
+  margin: 0;
+  direction: rtl;
+}
+
+/* =================== تنسيقات عامة للأزرار والروابط =================== */
+button {
+  cursor: pointer;
+  transition: background 0.3s, color 0.3s;
+}
+
+a {
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* =================== تخصيص عام للأقسام =================== */
+section {
+  padding: 50px 20px;
+}
+
+/* =================== تخصيص الصور =================== */
+img {
+  max-width: 100%;
+  display: block;
+  border-radius: 8px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
